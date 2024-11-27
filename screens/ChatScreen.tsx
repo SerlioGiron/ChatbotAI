@@ -30,7 +30,7 @@ const ChatScreen = () => {
       response = '¡Hola! ¿Cómo puedo ayudarte? 😊';
     } else if (userText.toLowerCase().includes('gracias')) {
       response = '¡De nada! Siempre estoy aquí para ayudarte. 🙌';
-    } else if (userText.toLowerCase().includes('adiós')) {
+    } else if (userText.toLowerCase().includes('adiós') || userText.toLowerCase().includes('bye') || userText.toLowerCase().includes('adios')) {
       response = '¡Adiós! Que tengas un gran día. 🌟';
     } else {
       response = 'Lo siento, no entiendo tu mensaje. 🤔';
