@@ -1,15 +1,22 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View, Text, TextInput, TouchableOpacity, StyleSheet} from 'react-native';
 
-const LoginScreen = ({navigation}) => {
+const RegisterScreen = ({navigation}) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bienvenido!</Text>
-      <Text style={styles.subtitle}>Inicia Sesion</Text>
+      <Text style={styles.title}>Crea una cuenta</Text>
+      <Text style={styles.subtitle}>Registrate para tener acceso a nuestras herramientas</Text>
+      
       <TextInput
         style={styles.input}
-        placeholder="Correo"
+        placeholder="Nombre"
         placeholderTextColor="#aaa"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        placeholderTextColor="#aaa"
+        keyboardType="email-address"
       />
       <TextInput
         style={styles.input}
@@ -17,20 +24,25 @@ const LoginScreen = ({navigation}) => {
         placeholderTextColor="#aaa"
         secureTextEntry
       />
+      <TextInput
+        style={styles.input}
+        placeholder="Confirmar Contraseña"
+        placeholderTextColor="#aaa"
+        secureTextEntry
+      />
+
       <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Inicio de Sesion</Text>
+        <Text style={styles.buttonText}>Registrarse</Text>
       </TouchableOpacity>
       <TouchableOpacity style={[styles.button, styles.googleButton]}>
-        <Text style={styles.buttonText}>Inicio de Sesion con Google</Text>
+        <Text style={styles.buttonText}>Registrarse con Google</Text>
       </TouchableOpacity>
       <TouchableOpacity style={[styles.button, styles.facebookButton]}>
-        <Text style={styles.buttonText}>Inicio de Sesion con Facebook</Text>
+        <Text style={styles.buttonText}>Registrarse con Facebook</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.link}>
-        <Text style={styles.linkText}>Inicio de Sesion con Face Id</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.link} onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.linkText}>No tienes cuenta? Registrate</Text>
+
+      <TouchableOpacity style={styles.link} onPress={() => navigation.navigate('Login') }>
+        <Text style={styles.linkText}>Ya tienes cuenta? Inicia Sesion</Text>
       </TouchableOpacity>
     </View>
   );
@@ -105,4 +117,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default RegisterScreen;
