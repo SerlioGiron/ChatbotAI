@@ -17,7 +17,7 @@ const LoginScreen = ({navigation}) => {
         placeholderTextColor="#aaa"
         secureTextEntry
       />
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ChatScreen')}>
         <Text style={styles.buttonText}>Inicio de Sesion</Text>
       </TouchableOpacity>
       <TouchableOpacity style={[styles.button, styles.googleButton]}>
