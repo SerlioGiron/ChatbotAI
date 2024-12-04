@@ -1,7 +1,9 @@
 import React from 'react';
 import {View, Text, TextInput, TouchableOpacity, StyleSheet} from 'react-native';
 
-const RegisterScreen = ({navigation}) => {
+import { NavigationProp } from '@react-navigation/native';
+
+const RegisterScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Crea una cuenta</Text>

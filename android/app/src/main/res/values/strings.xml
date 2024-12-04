@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">ChatbotIntentoPost</string>
+    <string name="facebook_app_id">589273880347105</string>
+    <string name="fb_login_protocol_scheme">fb589273880347105</string>
+    <string name="facebook_client_token">232f65e79a6c53a9a78893b87fde33b1</string>
 </resources>

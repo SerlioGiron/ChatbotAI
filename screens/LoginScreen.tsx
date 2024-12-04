@@ -1,7 +1,44 @@
 import React, {useState} from 'react';
 import {View, Text, TextInput, TouchableOpacity, StyleSheet} from 'react-native';
+import { NavigationProp } from '@react-navigation/native';
+import {LoginManager, AccessToken} from 'react-native-fbsdk-next';
 
-const LoginScreen = ({navigation}) => {
+
+
+const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
+  const handleFacebookLogin = async () => {
+    try {
+      // Pide permisos al usuario
+      const result = await LoginManager.logInWithPermissions(["public_profile", "email"]);
+
+      if (result.isCancelled) {
+        console.log("Inicio de sesión cancelado");
+        return;
+      }
+
+      // Obtén el token de acceso
+      const data = await AccessToken.getCurrentAccessToken();
+
+      if (!data) {
+        console.log("No se obtuvo el token de acceso");
+        return;
+      }
+
+      console.log("Token de acceso:", data.accessToken);
+
+      // Ejemplo de llamada al backend:
+      // const response = await fetch('http://tu-backend.com/auth/facebook', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ accessToken: data.accessToken }),
+      // });
+      // const userInfo = await response.json();
+      // console.log("Usuario autenticado:", userInfo);
+    } catch (error) {
+      console.error("Error en el inicio de sesión con Facebook:", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Bienvenido!</Text>
@@ -23,7 +60,7 @@ const LoginScreen = ({navigation}) => {
       <TouchableOpacity style={[styles.button, styles.googleButton]}>
         <Text style={styles.buttonText}>Inicio de Sesion con Google</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.button, styles.facebookButton]}>
+      <TouchableOpacity style={[styles.button, styles.facebookButton]} onPress={handleFacebookLogin}>
         <Text style={styles.buttonText}>Inicio de Sesion con Facebook</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.link}>

@@ -2,13 +2,18 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 
 const ChatScreen = () => {
-  const [messages, setMessages] = useState([]); // Almacena los mensajes
+  interface Message {
+    text: string;
+    sender: 'user' | 'bot';
+  }
+
+  const [messages, setMessages] = useState<Message[]>([]); // Almacena los mensajes
   const [inputText, setInputText] = useState(''); // Texto del input
 
   const sendMessage = () => {
     if (inputText.trim() !== '') {
       // Añade el mensaje del usuario
-      const userMessage = { text: inputText, sender: 'user' };
+      const userMessage: Message = { text: inputText, sender: 'user' };
       setMessages((prevMessages) => [...prevMessages, userMessage]);
 
       // Limpia el input
@@ -22,7 +27,7 @@ const ChatScreen = () => {
     }
   };
 
-  const generateBotResponse = (userText) => {
+  const generateBotResponse = (userText: string) => {
     let response;
 
     // Respuestas básicas dependiendo del mensaje del usuario
@@ -36,7 +41,7 @@ const ChatScreen = () => {
       response = 'Lo siento, no entiendo tu mensaje. 🤔';
     }
 
-    return { text: response, sender: 'bot' };
+    return { text: response, sender: 'bot' } as Message;
   };
 
   return (
