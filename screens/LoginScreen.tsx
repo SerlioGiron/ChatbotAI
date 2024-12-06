@@ -1,11 +1,18 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, StyleSheet, Alert} from 'react-native';
 import { NavigationProp } from '@react-navigation/native';
 import {LoginManager, AccessToken} from 'react-native-fbsdk-next';
+import ReactNativeBiometrics from 'react-native-biometrics';
 
+
+const rnBiometrics = new ReactNativeBiometrics();
 
 
 const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
+
+  const[email, setEmail] = useState('');
+  const[password, setPassword] = useState('');
+  
   const handleFacebookLogin = async () => {
     try {
       // Pide permisos al usuario
@@ -38,6 +45,34 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
       console.error("Error en el inicio de sesión con Facebook:", error);
     }
   };
+  const handleBiometricLogin = async () => {
+    try {
+        const { available, biometryType } = await rnBiometrics.isSensorAvailable();
+
+        if (!available) {
+            Alert.alert('Error', 'El dispositivo no admite autenticación biométrica.');
+            return;
+        }
+
+        const result = await rnBiometrics.simplePrompt({
+            promptMessage: biometryType === 'FaceID'
+                ? 'Inicia sesión con Face ID'
+                : 'Inicia sesión con huella digital'
+        });
+
+        if (result.success) {
+            Alert.alert('Éxito', 'Autenticación biométrica exitosa.');
+            navigation.navigate('Chat');
+        } else {
+            Alert.alert('Error', 'Autenticación fallida.');
+        }
+    } catch (error) {
+        Alert.alert('Error', 'No se pudo autenticar. ');
+    }
+};
+  
+
+
 
   return (
     <View style={styles.container}>
@@ -63,7 +98,7 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
       <TouchableOpacity style={[styles.button, styles.facebookButton]} onPress={handleFacebookLogin}>
         <Text style={styles.buttonText}>Inicio de Sesion con Facebook</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.link}>
+      <TouchableOpacity style={styles.link} onPress={handleBiometricLogin}>
         <Text style={styles.linkText}>Inicio de Sesion con Face Id</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.link} onPress={() => navigation.navigate('Register')}>
