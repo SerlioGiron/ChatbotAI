@@ -3,7 +3,15 @@ import {View, Text, TextInput, TouchableOpacity, StyleSheet, Alert} from 'react-
 import { NavigationProp } from '@react-navigation/native';
 import {LoginManager, AccessToken} from 'react-native-fbsdk-next';
 import ReactNativeBiometrics from 'react-native-biometrics';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
 
+
+GoogleSignin.configure({
+  scopes: ['email'],
+  webClientId: "325175137681-96dvf07e821und6p3v0fdrmpqa10qjnt.apps.googleusercontent.com", // Obtén este ID de cliente de la consola de Firebase
+  offlineAccess: true,
+});
 
 const rnBiometrics = new ReactNativeBiometrics();
 
@@ -12,6 +20,8 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
 
   const[email, setEmail] = useState('');
   const[password, setPassword] = useState('');
+  const [loggedIn, setloggedIn] = useState(false);
+  const [userInfo, setuserInfo] = useState([]);
   
   const handleFacebookLogin = async () => {
     try {
@@ -70,6 +80,33 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
         Alert.alert('Error', 'No se pudo autenticar. ');
     }
 };
+const signInWithGoogle = async () => {
+  try {
+    await GoogleSignin.hasPlayServices();
+    const userInfo = await GoogleSignin.signIn();
+    const {accessToken, idToken} = await GoogleSignin.getTokens();
+    setloggedIn(true);
+
+    // Muestra un mensaje de éxito
+    console.log('Info de usuario:', userInfo);
+    console.log('Token de acceso:', accessToken);
+    Alert.alert('Log in successfully');
+  } catch (error) {
+    if ((error as any).code === statusCodes.SIGN_IN_CANCELLED) {
+      // El usuario canceló el flujo de inicio de sesión
+      Alert.alert('Cancel');
+    } else if ((error as any).code === statusCodes.IN_PROGRESS) {
+      Alert.alert('Signin in progress');
+      // La operación (por ejemplo, inicio de sesión) ya está en progreso
+    } else if ((error as any).code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+      Alert.alert('PLAY_SERVICES_NOT_AVAILABLE');
+      // Los servicios de Google Play no están disponibles o están desactualizados
+    } else {
+      // Ocurrió otro error
+      Alert.alert('An error occurred');
+    }
+  }
+};
   
 
 
@@ -92,7 +129,7 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ChatScreen')}>
         <Text style={styles.buttonText}>Inicio de Sesion</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.button, styles.googleButton]}>
+      <TouchableOpacity style={[styles.button, styles.googleButton]} onPress={signInWithGoogle}>
         <Text style={styles.buttonText}>Inicio de Sesion con Google</Text>
       </TouchableOpacity>
       <TouchableOpacity style={[styles.button, styles.facebookButton]} onPress={handleFacebookLogin}>

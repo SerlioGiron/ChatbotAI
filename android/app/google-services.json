@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "325175137681",
+    "project_id": "chatbotvanguardia",
+    "storage_bucket": "chatbotvanguardia.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:325175137681:android:3d75dba8eee205e32d7630",
+        "android_client_info": {
+          "package_name": "com.chatbotintentopost"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "325175137681-tbc4cflmmdv5t59li5ehd1qkginlhtea.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.chatbotintentopost",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "325175137681-96dvf07e821und6p3v0fdrmpqa10qjnt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-l2MpCyuc3AQXucovTU47wafjseyLkLs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "325175137681-96dvf07e821und6p3v0fdrmpqa10qjnt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
