@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React, {useState} from 'react';
+import {useNavigation} from '@react-navigation/native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
 import axios from 'axios';
 
 const ChatScreen = () => {
@@ -7,83 +15,74 @@ const ChatScreen = () => {
     text: string;
     sender: 'user' | 'bot';
   }
-
+  const navigation = useNavigation();
   const [messages, setMessages] = useState<Message[]>([]); // Almacena los mensajes
   const [inputText, setInputText] = useState(''); // Texto del input
 
   const sendMessage = () => {
     if (inputText.trim() !== '') {
       // Añade el mensaje del usuario
-      const userMessage: Message = { text: inputText, sender: 'user' };
-      setMessages((prevMessages) => [...prevMessages, userMessage]);
+      const userMessage: Message = {text: inputText, sender: 'user'};
+      setMessages(prevMessages => [...prevMessages, userMessage]);
 
       // Limpia el input
       setInputText('');
 
       // Respuesta del bot
       setTimeout(() => {
-        let botMessage: Message = { text: '', sender: 'bot' };
+        let botMessage: Message = {text: '', sender: 'bot'};
 
-        axios.post('https://serverchatbot-paa8.onrender.com/detect-intent', { text: inputText })
-          .then((response) => {
-            const botMessage: Message = { text: response.data.respuesta, sender: 'bot' };
-            setMessages((prevMessages) => [...prevMessages, botMessage]);
+        axios
+          .post('https://serverchatbot-paa8.onrender.com/detect-intent', {
+            text: inputText,
           })
-          .catch((error) => {
+          .then(response => {
+            const botMessage: Message = {
+              text: response.data.respuesta,
+              sender: 'bot',
+            };
+            setMessages(prevMessages => [...prevMessages, botMessage]);
+          })
+          .catch(error => {
             console.error('Error:', error);
           });
-        // const botMessage = generateBotResponse(inputText); // Genera la respuesta del bot
-        setMessages((prevMessages) => [...prevMessages, botMessage]);
+        setMessages(prevMessages => [...prevMessages, botMessage]);
       }, 1000); // Retraso de 1 segundo para simular procesamiento
     }
   };
 
-  const generateBotResponse = (userText: string) => {
-    let response;
-
-    // Respuestas básicas dependiendo del mensaje del usuario
-    if (userText.toLowerCase().includes('hola')) {
-      response = '¡Hola! ¿Cómo puedo ayudarte? 😊';
-    } else if (userText.toLowerCase().includes('gracias')) {
-      response = '¡De nada! Siempre estoy aquí para ayudarte. 🙌';
-    } else if (userText.toLowerCase().includes('adiós') || userText.toLowerCase().includes('bye') || userText.toLowerCase().includes('adios')) {
-      response = '¡Adiós! Que tengas un gran día. 🌟';
-    } else {
-      response = 'Lo siento, no entiendo tu mensaje. 🤔';
-    }
-
-    return { text: response, sender: 'bot' } as Message;
+  const handleLogout = () => {
+    // Implement your logout logic here
+    // Navigate to the LoginScreen
+    navigation.navigate('LoginScreen');
+    console.log('User logged out');
   };
 
   return (
     <View style={styles.container}>
-      {/* Área de mensajes */}
-      <ScrollView style={styles.messagesContainer} contentContainerStyle={styles.messagesContentContainer}>
+      <ScrollView>
         {messages.map((message, index) => (
-          <View
+          <Text
             key={index}
-            style={[
-              styles.messageBubble,
-              message.sender === 'user' ? styles.userMessage : styles.botMessage,
-            ]}
-          >
-            <Text style={styles.messageText}>{message.text}</Text>
-          </View>
+            style={
+              message.sender === 'user' ? styles.userMessage : styles.botMessage
+            }>
+            {message.text}
+          </Text>
         ))}
       </ScrollView>
-
-      {/* Input para escribir el mensaje */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Escribe un mensaje..."
-          value={inputText}
-          onChangeText={setInputText}
-        />
-        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-          <Text style={styles.sendButtonText}>Enviar</Text>
-        </TouchableOpacity>
-      </View>
+      <TextInput
+        style={styles.input}
+        value={inputText}
+        onChangeText={setInputText}
+        placeholder="Type a message"
+      />
+      <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+        <Text style={styles.sendButtonText}>Send</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+        <Text style={styles.logoutButtonText}>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -91,60 +90,49 @@ const ChatScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f4f5',
-  },
-  messagesContainer: {
-    flex: 1,
     padding: 10,
-    },
-    messagesContentContainer: {
-      paddingBottom: 200,
-  },
-  messageBubble: {
-    padding: 5,
-    marginVertical: 5,
-    borderRadius: 10,
-    maxWidth: '80%',
   },
   userMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#4caf50',
+    backgroundColor: '#DCF8C6',
+    padding: 10,
+    borderRadius: 10,
+    marginVertical: 5,
   },
   botMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#000000',
-  },
-  messageText: {
-    fontSize: 16,
-    color: '#fff',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: '#ECECEC',
     padding: 10,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
+    borderRadius: 10,
+    marginVertical: 5,
   },
   input: {
-    flex: 1,
-    height: 40,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    backgroundColor: '#fff',
+    borderColor: '#CCC',
+    padding: 10,
+    borderRadius: 10,
+    marginVertical: 10,
   },
   sendButton: {
-    marginLeft: 10,
-    backgroundColor: '#4caf50',
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+    backgroundColor: '#007AFF',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
   },
   sendButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: '#FF3B30',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  logoutButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
   },
 });
 
