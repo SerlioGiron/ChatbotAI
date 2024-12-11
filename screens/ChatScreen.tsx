@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import axios from 'axios';
 
 const ChatScreen = () => {
   interface Message {
@@ -21,7 +22,17 @@ const ChatScreen = () => {
 
       // Respuesta del bot
       setTimeout(() => {
-        const botMessage = generateBotResponse(inputText); // Genera la respuesta del bot
+        let botMessage: Message = { text: '', sender: 'bot' };
+
+        axios.post('http://localhost:3000/detect-intent', { text: inputText })
+          .then((response) => {
+            const botMessage: Message = { text: response.data.respuesta, sender: 'bot' };
+            setMessages((prevMessages) => [...prevMessages, botMessage]);
+          })
+          .catch((error) => {
+            console.error('Error:', error);
+          });
+        // const botMessage = generateBotResponse(inputText); // Genera la respuesta del bot
         setMessages((prevMessages) => [...prevMessages, botMessage]);
       }, 1000); // Retraso de 1 segundo para simular procesamiento
     }
