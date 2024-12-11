@@ -94,12 +94,26 @@ const RegisterScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
       const response = await axios.post('https://serverchatbot-paa8.onrender.com/register-with-facebook', {
         token: data.accessToken,
       });
-      const resData = response.data;
+      
+      if(response.status === 200) {
+        console.log('Ya existe el usuario');
+        const resData = response.data;
 
-      //await AsyncStorage.setItem('user', JSON.stringify(resData.user));
-      //await AsyncStorage.setItem('loggedIn', 'true');
+        //await AsyncStorage.setItem('user', JSON.stringify(resData.user));
+        //await AsyncStorage.setItem('loggedIn', 'true');
 
-      navigation.navigate('ChatScreen', { user: resData.user });
+        navigation.navigate('ChatScreen', { user: resData.user });
+
+      }
+      if(response.status === 201) {
+        console.log('Usuario creado');
+        const resData = response.data;
+
+        //await AsyncStorage.setItem('user', JSON.stringify(resData.user));
+        //await AsyncStorage.setItem('loggedIn', 'true');
+
+        navigation.navigate('ChatScreen', { user: resData.user });
+      }
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Error desconocido';
       Alert.alert('Error', errorMessage);

@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 
-const ChatScreen = () => {
+import { RouteProp } from '@react-navigation/native';
+
+type ChatScreenRouteProp = RouteProp<{ params: { user: { id: string; nombre: string; apellido: string; email: string } } }, 'params'>;
+
+const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
+  const { user } = route.params || {}; // Obtiene el usuario de las props de navegación
   interface Message {
     text: string;
     sender: 'user' | 'bot';
   }
-
+  
   const [messages, setMessages] = useState<Message[]>([]); // Almacena los mensajes
   const [inputText, setInputText] = useState(''); // Texto del input
-
+  console.log(user);
   const sendMessage = () => {
     if (inputText.trim() !== '') {
       // Añade el mensaje del usuario

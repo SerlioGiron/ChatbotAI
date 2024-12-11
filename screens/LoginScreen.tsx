@@ -6,6 +6,7 @@ import ReactNativeBiometrics from 'react-native-biometrics';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 
 GoogleSignin.configure({
@@ -30,12 +31,20 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
     }
 
     try {
-      await auth().signInWithEmailAndPassword(email, password);
-      Alert.alert('Éxito', 'Inicio de sesión exitoso.');
-      setLoggedIn(true);
+      const response = await axios.post('https://serverchatbot-paa8.onrender.com/login-with-email', {
+        email,
+        password,
+      });
+      if(response.status === 200){
+        const user = response.data.existingUser;
+        Alert.alert('Éxito', 'Inicio de sesión exitoso.');
+        setLoggedIn(true);
+        navigation.navigate('ChatScreen', { user });
+      }
+      
       // Guardar el usuario en AsyncStorage o en estado global si lo prefieres
       //await AsyncStorage.setItem('user', JSON.stringify({ email }));
-      navigation.navigate('ChatScreen', { user: { email } });
+      
     } catch (error) {
       Alert.alert('Error', 'No se pudo iniciar sesión. Verifica tus credenciales.');
     }
@@ -56,17 +65,17 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
         console.log('No se obtuvo el token de acceso');
         return;
       }
-
-      console.log('Token de acceso:', data.accessToken);
-      // Verifica el token con tu backend aquí si es necesario
-
-      Alert.alert('Éxito', 'Inicio de sesión con Facebook exitoso.');
-      setLoggedIn(true);
-      setUserInfo({ token: data.accessToken });
-
-      navigation.navigate('ChatScreen', { user: { token: data.accessToken } });
+      const response = await axios.post('https://serverchatbot-paa8.onrender.com/login-with-facebook', {
+        token: data.accessToken,
+      });
+      if(response.status === 200){
+        const user = response.data.existingUser;
+        Alert.alert('Éxito', 'Inicio de sesión con Facebook exitoso.');
+        setLoggedIn(true);
+        navigation.navigate('ChatScreen', { user });
+      }
     } catch (error) {
-      console.error('Error en el inicio de sesión con Facebook:', error);
+      Alert.alert('Error en el inicio de sesión con Facebook:');
     }
   };
   const handleBiometricLogin = async () => {
@@ -99,23 +108,16 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
       const userInfo = await GoogleSignin.signIn();
       const { idToken } = await GoogleSignin.getTokens();
 
-      // // Enviar el token al backend para verificarlo
-      // const response = await fetch('https://tu-backend.com/verify-token', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({ token: idToken }),
-      // });
-
-      // const data = await response.json();
-      // if (response.ok) {
-      //   console.log('Información de usuario:', data);
-      //   setLoggedIn(true);
-      //   setUserInfo(data);
-      //   //await AsyncStorage.setItem('user', JSON.stringify(data));
-        //navigation.navigate('ChatScreen', { user: data });
-        navigation.navigate('ChatScreen', { user: userInfo });
+      const googleToken = idToken;
+      const response = await axios.post('https://serverchatbot-paa8.onrender.com/login-with-google', {
+        googleToken,
+      });
+      if(response.status === 200){
+        const user = response.data.existingUser;
+        Alert.alert('Éxito', 'Inicio de sesión con Google exitoso.');
+        setLoggedIn(true);
+        navigation.navigate('ChatScreen', { user });
+      }
       // } else {
       //   Alert.alert('Error', 'Verificación de token fallida.');
       // }
@@ -143,11 +145,16 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
         style={styles.input}
         placeholder="Correo"
         placeholderTextColor="#aaa"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
         placeholder="Contraseña"
         placeholderTextColor="#aaa"
+        value={password}
+        onChangeText={setPassword}
         secureTextEntry
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
