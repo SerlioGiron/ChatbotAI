@@ -24,7 +24,7 @@ const ChatScreen = () => {
       setTimeout(() => {
         let botMessage: Message = { text: '', sender: 'bot' };
 
-        axios.post('http://localhost:3000/detect-intent', { text: inputText })
+        axios.post('https://serverchatbot-paa8.onrender.com/detect-intent', { text: inputText })
           .then((response) => {
             const botMessage: Message = { text: response.data.respuesta, sender: 'bot' };
             setMessages((prevMessages) => [...prevMessages, botMessage]);
@@ -58,7 +58,7 @@ const ChatScreen = () => {
   return (
     <View style={styles.container}>
       {/* Área de mensajes */}
-      <ScrollView style={styles.messagesContainer}>
+      <ScrollView style={styles.messagesContainer} contentContainerStyle={styles.messagesContentContainer}>
         {messages.map((message, index) => (
           <View
             key={index}
@@ -96,9 +96,12 @@ const styles = StyleSheet.create({
   messagesContainer: {
     flex: 1,
     padding: 10,
+    },
+    messagesContentContainer: {
+      paddingBottom: 200,
   },
   messageBubble: {
-    padding: 10,
+    padding: 5,
     marginVertical: 5,
     borderRadius: 10,
     maxWidth: '80%',
@@ -109,7 +112,7 @@ const styles = StyleSheet.create({
   },
   botMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#000000',
   },
   messageText: {
     fontSize: 16,
