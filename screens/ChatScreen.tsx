@@ -54,7 +54,7 @@ const ChatScreen = () => {
   const handleLogout = () => {
     // Implement your logout logic here
     // Navigate to the LoginScreen
-    navigation.navigate('LoginScreen');
+    navigation.navigate('Login');
     console.log('User logged out');
   };
 
@@ -71,15 +71,17 @@ const ChatScreen = () => {
           </Text>
         ))}
       </ScrollView>
-      <TextInput
-        style={styles.input}
-        value={inputText}
-        onChangeText={setInputText}
-        placeholder="Type a message"
-      />
-      <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
-        <Text style={styles.sendButtonText}>Send</Text>
-      </TouchableOpacity>
+      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <TextInput
+          style={[styles.input, {flex: 1}]}
+          value={inputText}
+          onChangeText={setInputText}
+          placeholder="Type a message"
+        />
+        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+          <Text style={styles.sendButtonText}>Send</Text>
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>

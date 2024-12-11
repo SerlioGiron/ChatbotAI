@@ -143,12 +143,14 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
         style={styles.input}
         placeholder="Correo"
         placeholderTextColor="#aaa"
+        onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
         placeholder="Contraseña"
         placeholderTextColor="#aaa"
         secureTextEntry
+        onChangeText={setPassword}
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Inicio de Sesion</Text>
