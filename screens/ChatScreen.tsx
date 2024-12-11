@@ -35,6 +35,7 @@ const ChatScreen = () => {
         axios
           .post('https://serverchatbot-paa8.onrender.com/detect-intent', {
             text: inputText,
+            token: "1234567890",
           })
           .then(response => {
             const botMessage: Message = {
