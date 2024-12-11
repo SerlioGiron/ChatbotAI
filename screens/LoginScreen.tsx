@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
+import React, {useState}from 'react';
 import {View, Text, TextInput, TouchableOpacity, StyleSheet, Alert} from 'react-native';
 import { NavigationProp } from '@react-navigation/native';
 import {LoginManager, AccessToken} from 'react-native-fbsdk-next';
 import ReactNativeBiometrics from 'react-native-biometrics';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 GoogleSignin.configure({
@@ -17,96 +18,119 @@ const rnBiometrics = new ReactNativeBiometrics();
 
 
 const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [userInfo, setUserInfo] = useState<any>(null);
 
-  const[email, setEmail] = useState('');
-  const[password, setPassword] = useState('');
-  const [loggedIn, setloggedIn] = useState(false);
-  const [userInfo, setuserInfo] = useState([]);
-  
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Correo y contraseña son requeridos.');
+      return;
+    }
+
+    try {
+      await auth().signInWithEmailAndPassword(email, password);
+      Alert.alert('Éxito', 'Inicio de sesión exitoso.');
+      setLoggedIn(true);
+      // Guardar el usuario en AsyncStorage o en estado global si lo prefieres
+      //await AsyncStorage.setItem('user', JSON.stringify({ email }));
+      navigation.navigate('ChatScreen', { user: { email } });
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo iniciar sesión. Verifica tus credenciales.');
+    }
+  };
+
+
   const handleFacebookLogin = async () => {
     try {
-      // Pide permisos al usuario
-      const result = await LoginManager.logInWithPermissions(["public_profile", "email"]);
+      const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
 
       if (result.isCancelled) {
-        console.log("Inicio de sesión cancelado");
+        console.log('Inicio de sesión cancelado');
         return;
       }
 
-      // Obtén el token de acceso
       const data = await AccessToken.getCurrentAccessToken();
-
       if (!data) {
-        console.log("No se obtuvo el token de acceso");
+        console.log('No se obtuvo el token de acceso');
         return;
       }
 
-      console.log("Token de acceso:", data.accessToken);
+      console.log('Token de acceso:', data.accessToken);
+      // Verifica el token con tu backend aquí si es necesario
 
-      // Ejemplo de llamada al backend:
-      // const response = await fetch('http://tu-backend.com/auth/facebook', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ accessToken: data.accessToken }),
-      // });
-      // const userInfo = await response.json();
-      // console.log("Usuario autenticado:", userInfo);
+      Alert.alert('Éxito', 'Inicio de sesión con Facebook exitoso.');
+      setLoggedIn(true);
+      setUserInfo({ token: data.accessToken });
+
+      navigation.navigate('ChatScreen', { user: { token: data.accessToken } });
     } catch (error) {
-      console.error("Error en el inicio de sesión con Facebook:", error);
+      console.error('Error en el inicio de sesión con Facebook:', error);
     }
   };
   const handleBiometricLogin = async () => {
     try {
-        const { available, biometryType } = await rnBiometrics.isSensorAvailable();
+      const { available, biometryType } = await rnBiometrics.isSensorAvailable();
 
-        if (!available) {
-            Alert.alert('Error', 'El dispositivo no admite autenticación biométrica.');
-            return;
-        }
+      if (!available) {
+        Alert.alert('Error', 'El dispositivo no admite autenticación biométrica.');
+        return;
+      }
 
-        const result = await rnBiometrics.simplePrompt({
-            promptMessage: biometryType === 'FaceID'
-                ? 'Inicia sesión con Face ID'
-                : 'Inicia sesión con huella digital'
-        });
+      const result = await rnBiometrics.simplePrompt({
+        promptMessage: biometryType === 'FaceID' ? 'Inicia sesión con Face ID' : 'Inicia sesión con huella digital',
+      });
 
-        if (result.success) {
-            Alert.alert('Éxito', 'Autenticación biométrica exitosa.');
-            navigation.navigate('Chat');
-        } else {
-            Alert.alert('Error', 'Autenticación fallida.');
-        }
+      if (result.success) {
+        Alert.alert('Éxito', 'Autenticación biométrica exitosa.');
+        navigation.navigate('ChatScreen');
+      } else {
+        Alert.alert('Error', 'Autenticación fallida.');
+      }
     } catch (error) {
-        Alert.alert('Error', 'No se pudo autenticar. ');
+      Alert.alert('Error', 'No se pudo autenticar.');
     }
-};
-const signInWithGoogle = async () => {
-  try {
-    await GoogleSignin.hasPlayServices();
-    const userInfo = await GoogleSignin.signIn();
-    const {accessToken, idToken} = await GoogleSignin.getTokens();
-    setloggedIn(true);
+  };
+  const handleGoogleLogin = async () => {
+    try {
+      await GoogleSignin.signOut();
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      const { idToken } = await GoogleSignin.getTokens();
 
-    // Muestra un mensaje de éxito
-    console.log('Info de usuario:', userInfo);
-    console.log('Token de acceso:', accessToken);
-    Alert.alert('Log in successfully');
-  } catch (error) {
-    if ((error as any).code === statusCodes.SIGN_IN_CANCELLED) {
-      // El usuario canceló el flujo de inicio de sesión
-      Alert.alert('Cancel');
-    } else if ((error as any).code === statusCodes.IN_PROGRESS) {
-      Alert.alert('Signin in progress');
-      // La operación (por ejemplo, inicio de sesión) ya está en progreso
-    } else if ((error as any).code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-      Alert.alert('PLAY_SERVICES_NOT_AVAILABLE');
-      // Los servicios de Google Play no están disponibles o están desactualizados
-    } else {
-      // Ocurrió otro error
-      Alert.alert('An error occurred');
+      // // Enviar el token al backend para verificarlo
+      // const response = await fetch('https://tu-backend.com/verify-token', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({ token: idToken }),
+      // });
+
+      // const data = await response.json();
+      // if (response.ok) {
+      //   console.log('Información de usuario:', data);
+      //   setLoggedIn(true);
+      //   setUserInfo(data);
+      //   //await AsyncStorage.setItem('user', JSON.stringify(data));
+        //navigation.navigate('ChatScreen', { user: data });
+        navigation.navigate('ChatScreen', { user: userInfo });
+      // } else {
+      //   Alert.alert('Error', 'Verificación de token fallida.');
+      // }
+    } catch (error) {
+      if ((error as any).code === statusCodes.SIGN_IN_CANCELLED) {
+        Alert.alert('Cancel', 'El inicio de sesión fue cancelado.');
+      } else if ((error as any).code === statusCodes.IN_PROGRESS) {
+        Alert.alert('Signin in progress', 'El inicio de sesión ya está en progreso.');
+      } else if ((error as any).code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('PLAY_SERVICES_NOT_AVAILABLE', 'Los servicios de Google Play no están disponibles o están desactualizados.');
+      } else {
+        Alert.alert('Error', 'Ocurrió un error al iniciar sesión.');
+      }
     }
-  }
-};
+  };
   
 
 
@@ -126,10 +150,10 @@ const signInWithGoogle = async () => {
         placeholderTextColor="#aaa"
         secureTextEntry
       />
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ChatScreen')}>
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Inicio de Sesion</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.button, styles.googleButton]} onPress={signInWithGoogle}>
+      <TouchableOpacity style={[styles.button, styles.googleButton]} onPress={handleGoogleLogin}>
         <Text style={styles.buttonText}>Inicio de Sesion con Google</Text>
       </TouchableOpacity>
       <TouchableOpacity style={[styles.button, styles.facebookButton]} onPress={handleFacebookLogin}>
