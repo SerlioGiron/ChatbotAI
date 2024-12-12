@@ -154,7 +154,6 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
         placeholder="Contraseña"
         placeholderTextColor="#aaa"
         value={password}
-        onChangeText={setPassword}
         secureTextEntry
         onChangeText={setPassword}
       />

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
 import { RouteProp } from '@react-navigation/native';
 
@@ -7,6 +9,7 @@ type ChatScreenRouteProp = RouteProp<{ params: { user: { id: string; nombre: str
 
 const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
   const { user } = route.params || {}; // Obtiene el usuario de las props de navegación
+  const navigation = useNavigation();
   interface Message {
     text: string;
     sender: 'user' | 'bot';
@@ -31,7 +34,7 @@ const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
         axios
           .post('https://serverchatbot-paa8.onrender.com/detect-intent', {
             text: inputText,
-            token: "1234567890",
+            token: user.id,
           })
           .then(response => {
             const botMessage: Message = {
@@ -55,6 +58,30 @@ const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
     console.log('User logged out');
   };
 
+  const fetchChatHistory = async () => {
+    try {
+      const response = await axios.post('https://serverchatbot-paa8.onrender.com/get-chat-by-token', {
+        token: user.id,
+      });
+
+      if (response.status === 200) {
+        const chatHistory = response.data;
+        const formattedMessages = chatHistory.flatMap((chat: { pregunta: string; respuesta: string }) => [
+          { text: chat.pregunta, sender: 'user' },
+          { text: chat.respuesta, sender: 'bot' },
+        ]);
+        setMessages(formattedMessages);
+      }
+    } catch (error) {
+      console.error('Error fetching chat history:', error);
+    }
+  };
+
+
+  React.useEffect(() => {
+    fetchChatHistory();
+  }, []);
+  
   return (
     <View style={styles.container}>
       <ScrollView>
