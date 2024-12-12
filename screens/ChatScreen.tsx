@@ -79,9 +79,10 @@ const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
 
 
   React.useEffect(() => {
+    console.log("cargando mensajes ....");
     fetchChatHistory();
   }, []);
-  
+
   return (
     <View style={styles.container}>
       <ScrollView>
