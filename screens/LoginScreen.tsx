@@ -154,8 +154,8 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
         placeholder="Contraseña"
         placeholderTextColor="#aaa"
         value={password}
-        onChangeText={setPassword}
         secureTextEntry
+        onChangeText={setPassword}
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Inicio de Sesion</Text>

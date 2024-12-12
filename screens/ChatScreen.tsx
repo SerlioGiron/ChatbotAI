@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
 import { RouteProp } from '@react-navigation/native';
 
@@ -7,6 +9,7 @@ type ChatScreenRouteProp = RouteProp<{ params: { user: { id: string; nombre: str
 
 const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
   const { user } = route.params || {}; // Obtiene el usuario de las props de navegación
+  const navigation = useNavigation();
   interface Message {
     text: string;
     sender: 'user' | 'bot';
@@ -18,66 +21,95 @@ const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
   const sendMessage = () => {
     if (inputText.trim() !== '') {
       // Añade el mensaje del usuario
-      const userMessage: Message = { text: inputText, sender: 'user' };
-      setMessages((prevMessages) => [...prevMessages, userMessage]);
+      const userMessage: Message = {text: inputText, sender: 'user'};
+      setMessages(prevMessages => [...prevMessages, userMessage]);
 
       // Limpia el input
       setInputText('');
 
       // Respuesta del bot
       setTimeout(() => {
-        const botMessage = generateBotResponse(inputText); // Genera la respuesta del bot
-        setMessages((prevMessages) => [...prevMessages, botMessage]);
+        let botMessage: Message = {text: '', sender: 'bot'};
+
+        axios
+          .post('https://serverchatbot-paa8.onrender.com/detect-intent', {
+            text: inputText,
+            token: user.id,
+          })
+          .then(response => {
+            const botMessage: Message = {
+              text: response.data.respuesta,
+              sender: 'bot',
+            };
+            setMessages(prevMessages => [...prevMessages, botMessage]);
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+        setMessages(prevMessages => [...prevMessages, botMessage]);
       }, 1000); // Retraso de 1 segundo para simular procesamiento
     }
   };
 
-  const generateBotResponse = (userText: string) => {
-    let response;
-
-    // Respuestas básicas dependiendo del mensaje del usuario
-    if (userText.toLowerCase().includes('hola')) {
-      response = '¡Hola! ¿Cómo puedo ayudarte? 😊';
-    } else if (userText.toLowerCase().includes('gracias')) {
-      response = '¡De nada! Siempre estoy aquí para ayudarte. 🙌';
-    } else if (userText.toLowerCase().includes('adiós') || userText.toLowerCase().includes('bye') || userText.toLowerCase().includes('adios')) {
-      response = '¡Adiós! Que tengas un gran día. 🌟';
-    } else {
-      response = 'Lo siento, no entiendo tu mensaje. 🤔';
-    }
-
-    return { text: response, sender: 'bot' } as Message;
+  const handleLogout = () => {
+    // Implement your logout logic here
+    // Navigate to the LoginScreen
+    navigation.navigate('Login');
+    console.log('User logged out');
   };
+
+  const fetchChatHistory = async () => {
+    try {
+      const response = await axios.post('https://serverchatbot-paa8.onrender.com/get-chat-by-token', {
+        token: user.id,
+      });
+
+      if (response.status === 200) {
+        const chatHistory = response.data;
+        const formattedMessages = chatHistory.flatMap((chat: { pregunta: string; respuesta: string }) => [
+          { text: chat.pregunta, sender: 'user' },
+          { text: chat.respuesta, sender: 'bot' },
+        ]);
+        setMessages(formattedMessages);
+      }
+    } catch (error) {
+      console.error('Error fetching chat history:', error);
+    }
+  };
+
+
+  React.useEffect(() => {
+    console.log("cargando mensajes ....");
+    fetchChatHistory();
+  }, []);
 
   return (
     <View style={styles.container}>
-      {/* Área de mensajes */}
-      <ScrollView style={styles.messagesContainer}>
+      <ScrollView>
         {messages.map((message, index) => (
-          <View
+          <Text
             key={index}
-            style={[
-              styles.messageBubble,
-              message.sender === 'user' ? styles.userMessage : styles.botMessage,
-            ]}
-          >
-            <Text style={styles.messageText}>{message.text}</Text>
-          </View>
+            style={
+              message.sender === 'user' ? styles.userMessage : styles.botMessage
+            }>
+            {message.text}
+          </Text>
         ))}
       </ScrollView>
-
-      {/* Input para escribir el mensaje */}
-      <View style={styles.inputContainer}>
+      <View style={{flexDirection: 'row', alignItems: 'center'}}>
         <TextInput
-          style={styles.input}
-          placeholder="Escribe un mensaje..."
+          style={[styles.input, {flex: 1}]}
           value={inputText}
           onChangeText={setInputText}
+          placeholder="Type a message"
         />
-        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-          <Text style={styles.sendButtonText}>Enviar</Text>
+        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+          <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
       </View>
+      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+        <Text style={styles.logoutButtonText}>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -85,57 +117,49 @@ const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f4f5',
-  },
-  messagesContainer: {
-    flex: 1,
     padding: 10,
-  },
-  messageBubble: {
-    padding: 10,
-    marginVertical: 5,
-    borderRadius: 10,
-    maxWidth: '80%',
   },
   userMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#4caf50',
+    backgroundColor: '#DCF8C6',
+    padding: 10,
+    borderRadius: 10,
+    marginVertical: 5,
   },
   botMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#e0e0e0',
-  },
-  messageText: {
-    fontSize: 16,
-    color: '#fff',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: '#ECECEC',
     padding: 10,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
+    borderRadius: 10,
+    marginVertical: 5,
   },
   input: {
-    flex: 1,
-    height: 40,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    backgroundColor: '#fff',
+    borderColor: '#CCC',
+    padding: 10,
+    borderRadius: 10,
+    marginVertical: 10,
   },
   sendButton: {
-    marginLeft: 10,
-    backgroundColor: '#4caf50',
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+    backgroundColor: '#007AFF',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
   },
   sendButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: '#FF3B30',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  logoutButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
   },
 });
 
