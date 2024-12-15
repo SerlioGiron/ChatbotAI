@@ -245,13 +245,15 @@ const styles = StyleSheet.create({
   userMessageContainer: {
     alignSelf: 'flex-end',
     flexDirection: 'row-reverse',
+    maxWidth: '80%', // Limita el ancho máximo del contenedor del mensaje de usuario
   },
   botMessageContainer: {
     alignSelf: 'flex-start',
+    maxWidth: '80%', // Limita el ancho máximo del contenedor del mensaje del bot
   },
   userMessage: {
     backgroundColor: '#DCF8C6',
-    padding: 10,
+    padding: 20,
     borderRadius: 10,
   },
   botMessage: {
