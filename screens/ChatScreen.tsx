@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+import * as ImagePicker from 'react-native-image-picker';
 
 import { RouteProp } from '@react-navigation/native';
 
@@ -10,50 +11,40 @@ type ChatScreenRouteProp = RouteProp<{ params: { user: { id: string; nombre: str
 const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
   const { user } = route.params || {}; // Obtiene el usuario de las props de navegación
   const navigation = useNavigation();
+  
   interface Message {
     text: string;
     sender: 'user' | 'bot';
   }
-  
+
   const [messages, setMessages] = useState<Message[]>([]); // Almacena los mensajes
   const [inputText, setInputText] = useState(''); // Texto del input
-  console.log(user);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+
   const sendMessage = () => {
     if (inputText.trim() !== '') {
-      // Añade el mensaje del usuario
-      const userMessage: Message = {text: inputText, sender: 'user'};
+      const userMessage: Message = { text: inputText, sender: 'user' };
       setMessages(prevMessages => [...prevMessages, userMessage]);
-
-      // Limpia el input
       setInputText('');
-
-      // Respuesta del bot
-      setTimeout(() => {
-        let botMessage: Message = {text: '', sender: 'bot'};
-
-        axios
-          .post('https://serverchatbot-paa8.onrender.com/detect-intent', {
-            text: inputText,
-            token: user.id,
-          })
-          .then(response => {
-            const botMessage: Message = {
-              text: response.data.respuesta,
-              sender: 'bot',
-            };
-            setMessages(prevMessages => [...prevMessages, botMessage]);
-          })
-          .catch(error => {
-            console.error('Error:', error);
-          });
-        setMessages(prevMessages => [...prevMessages, botMessage]);
-      }, 1000); // Retraso de 1 segundo para simular procesamiento
+      axios
+        .post('https://serverchatbot-paa8.onrender.com/detect-intent', {
+          text: inputText,
+          token: user.id,
+        })
+        .then(response => {
+          const botMessage: Message = {
+            text: response.data.respuesta,
+            sender: 'bot',
+          };
+          setMessages(prevMessages => [...prevMessages, botMessage]);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
     }
   };
 
   const handleLogout = () => {
-    // Implement your logout logic here
-    // Navigate to the LoginScreen
     navigation.navigate('Login');
     console.log('User logged out');
   };
@@ -77,9 +68,26 @@ const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
     }
   };
 
+  const handleChangeProfilePicture = () => {
+    ImagePicker.launchImageLibrary(
+      {
+        mediaType: 'photo',
+        includeBase64: false,
+      },
+      response => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.errorCode) {
+          console.error('ImagePicker Error:', response.errorMessage);
+        } else if (response.assets && response.assets.length > 0) {
+          const selectedImage = response.assets[0];
+          setProfilePicture(selectedImage.uri || null);
+        }
+      }
+    );
+  }
 
   React.useEffect(() => {
-    console.log("cargando mensajes ....");
     fetchChatHistory();
   }, []);
 
@@ -87,18 +95,29 @@ const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
     <View style={styles.container}>
       <ScrollView>
         {messages.map((message, index) => (
-          <Text
+          <View
             key={index}
-            style={
-              message.sender === 'user' ? styles.userMessage : styles.botMessage
-            }>
-            {message.text}
-          </Text>
+            style={[
+              styles.messageContainer,
+              message.sender === 'user' ? styles.userMessageContainer : styles.botMessageContainer,
+            ]}
+          >
+            {message.sender === 'user' && (
+              <Image source={
+                profilePicture
+                  ? { uri: profilePicture }
+                  : require('./assets/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg') // Imagen por defecto
+              } style={styles.profileImage} />
+            )}
+            <Text style={message.sender === 'user' ? styles.userMessage : styles.botMessage}>
+              {message.text}
+            </Text>
+          </View>
         ))}
       </ScrollView>
-      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <TextInput
-          style={[styles.input, {flex: 1}]}
+          style={[styles.input, { flex: 1 }]}
           value={inputText}
           onChangeText={setInputText}
           placeholder="Type a message"
@@ -107,6 +126,9 @@ const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
           <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
       </View>
+      <TouchableOpacity onPress={handleChangeProfilePicture} style={styles.changePhotoButton}>
+        <Text style={styles.changePhotoButtonText}>Change Profile Picture</Text>
+      </TouchableOpacity>
       <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
@@ -119,19 +141,33 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
   },
-  userMessage: {
+  messageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 5,
+  },
+  userMessageContainer: {
     alignSelf: 'flex-end',
+    flexDirection: 'row-reverse',
+  },
+  botMessageContainer: {
+    alignSelf: 'flex-start',
+  },
+  userMessage: {
     backgroundColor: '#DCF8C6',
     padding: 10,
     borderRadius: 10,
-    marginVertical: 5,
   },
   botMessage: {
-    alignSelf: 'flex-start',
     backgroundColor: '#ECECEC',
     padding: 10,
     borderRadius: 10,
-    marginVertical: 5,
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginHorizontal: 10,
   },
   input: {
     borderWidth: 1,
@@ -147,6 +183,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+  changePhotoButton: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  changePhotoButtonText: {
     color: '#FFF',
     fontWeight: 'bold',
   },
