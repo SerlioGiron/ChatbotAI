@@ -120,13 +120,13 @@ const ChatScreen = ({route}: {route: ChatScreenRouteProp}) => {
       );
 
       if (response.status === 200) {
-        if (response.data.sentiment_average >= 0.8) {
+        if (response.data.sentiment_average >= 0.7) {
           setSentimentData(
             `The average sentiment of your messages really good.\n 😊 \n ${response.data.sentiment_average}`,
           ); // Mensaje positivo
-        } else if (response.data.sentiment_average >= 0.5) {
+        } else if (response.data.sentiment_average >= 0.4) {
           setSentimentData(
-            `The average sentiment of your messages is good.\n 🙂 \n ${response.data.sentiment_average}`,
+            `The average sentiment of your messages is neutral.\n 🙂 \n ${response.data.sentiment_average}`,
           ); // Mensaje neutra
         } else {
           setSentimentData(
