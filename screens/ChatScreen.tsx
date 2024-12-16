@@ -24,10 +24,10 @@ type ChatScreenRouteProp = RouteProp<
   'params'
 >;
 
-const ChatScreen = ({route}: {route: ChatScreenRouteProp}) => {
-  const {user} = route.params || {}; // Obtiene el usuario de las props de navegación
-  const navigation = useNavigation();
 
+const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
+  const { user } = route.params || {}; // Obtiene el usuario de las props de navegación
+  const navigation = useNavigation<any>();
   interface Message {
     text: string;
     sender: 'user' | 'bot';
@@ -39,6 +39,7 @@ const ChatScreen = ({route}: {route: ChatScreenRouteProp}) => {
   const [isModalVisible, setModalVisible] = useState(false); // Estado para el pop-up
   const [sentimentData, setSentimentData] = useState<string | null>(null); // Datos del endpoint
 
+  //console.log(user);
   const sendMessage = () => {
     if (inputText.trim() !== '') {
       const userMessage: Message = {text: inputText, sender: 'user'};
