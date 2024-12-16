@@ -9,7 +9,7 @@ type ChatScreenRouteProp = RouteProp<{ params: { user: { id: string; nombre: str
 
 const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
   const { user } = route.params || {}; // Obtiene el usuario de las props de navegación
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   interface Message {
     text: string;
     sender: 'user' | 'bot';
@@ -17,7 +17,7 @@ const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
   
   const [messages, setMessages] = useState<Message[]>([]); // Almacena los mensajes
   const [inputText, setInputText] = useState(''); // Texto del input
-  console.log(user);
+  //console.log(user);
   const sendMessage = () => {
     if (inputText.trim() !== '') {
       // Añade el mensaje del usuario
