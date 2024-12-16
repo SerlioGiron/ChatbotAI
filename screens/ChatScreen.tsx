@@ -98,14 +98,46 @@ const ChatScreen = ({ route }: { route: ChatScreenRouteProp }) => {
         mediaType: 'photo',
         includeBase64: false,
       },
-      response => {
+      async response => {
         if (response.didCancel) {
           console.log('User cancelled image picker');
         } else if (response.errorCode) {
           console.error('ImagePicker Error:', response.errorMessage);
         } else if (response.assets && response.assets.length > 0) {
           const selectedImage = response.assets[0];
-          setProfilePicture(selectedImage.uri || null);
+  
+          // Crear un FormData
+          const formData = new FormData();
+          formData.append('profileImage', {
+            uri: selectedImage.uri,
+            type: selectedImage.type, // 'image/jpeg' o 'image/png'
+            name: selectedImage.fileName, // Nombre de archivo
+          });
+  
+          // También agregar el userID
+          const userID = user.id; // Aquí deberías usar el ID del usuario real
+          formData.append('userID', userID);
+  
+          // Llamada a la API para subir la imagen
+          try {
+            const response = await fetch('https://serverchatbot-paa8.onrender.com/update-user-image', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'multipart/form-data', // Especificar que estamos enviando un formulario con archivos
+              },
+              body: formData, // Pasar el FormData con la imagen y el userID
+            });
+  
+            const data = await response.json();
+            if (response.ok) {
+              console.log('Imagen subida con éxito:', data);
+              // Puedes manejar la respuesta, por ejemplo, actualizar el estado con la URL de la imagen
+            } else {
+              console.error('Error al subir la imagen:', data.error);
+            }
+          } catch (error) {
+            console.error('Error de red o servidor:', error);
+          }
         }
       },
     );
